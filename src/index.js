@@ -3,29 +3,26 @@ import { InteractionType, InteractionResponseType, verifyKey } from 'discord-int
 export default {
   async fetch(request, env) {
     if (request.method !== 'POST') {
-      return new Response('BrotSMP Bot läuft!', { status: 200 });
+      return new Response('BrotSMP Bot läuft 24/7 über Cloudflare!', { status: 200 });
     }
 
     const signature = request.headers.get('x-signature-ed25519');
     const timestamp = request.headers.get('x-signature-timestamp');
     const body = await request.text();
 
-    // Überprüfe, ob die Anfrage wirklich von Discord kommt
     const isValidRequest = verifyKey(body, signature, timestamp, env.DISCORD_PUBLIC_KEY);
     if (!isValidRequest) {
-      return new Response('Ungültige Anfrage', { status: 401 });
+      return new Response('Ungültige Signatur', { status: 401 });
     }
 
     const interaction = JSON.parse(body);
 
-    // 1. PING von Discord beantworten (Verifizierung)
     if (interaction.type === InteractionType.PING) {
       return new Response(JSON.stringify({ type: InteractionResponseType.PONG }), {
         headers: { 'content-type': 'application/json' },
       });
     }
 
-    // 2. /ip Befehl beantworten
     if (interaction.type === InteractionType.APPLICATION_COMMAND) {
       if (interaction.data.name === 'ip') {
         return new Response(
@@ -43,6 +40,6 @@ export default {
       }
     }
 
-    return new Response('Unbekannter Befehl', { status: 400 });
+    return new Response('Befehl nicht gefunden', { status: 400 });
   },
 };
